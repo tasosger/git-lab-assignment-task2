@@ -18,6 +18,7 @@ def show_tickers():
     content = """
         <a href='#' id='MSFT'><img height='60px' width='60px' src='https://banner2.cleanpng.com/20180609/jq/aa8dbj2or.webp'></a>
         <a href='#' id='AAPL'><img height='60px' width='60px' src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'></a>
+        <a href='#' id='SBUX'><img height='60px' width='60px' src='https://upload.wikimedia.org/wikipedia/el/e/e3/Starbucks_logo.svg'></a>
     """
     return content
 
@@ -184,6 +185,9 @@ ticker = get_ticker()
 
 # Every time something happens, Streamlit reruns the script so when an image is clicked, the script will rerun and the ticker will not be empty.
 if ticker != "":
+    df = get_dataframe(ticker)
+    fig = plot_candlestick(df, ticker)
+    show_plot(fig)
     st.write(f"Selected ticker: **{ticker}**")
     start_date, end_date = get_date_range()
 
