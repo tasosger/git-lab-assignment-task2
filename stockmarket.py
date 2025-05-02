@@ -124,7 +124,60 @@ def show_info(ticker):
         currency = fast_info.get("currency", "N/A")
         st.metric("Currency", currency)
 
+def show_portfolio():
+    st.subheader("📊 Investment Portfolio Tracker")
 
+    if "portfolio" not in st.session_state:
+        st.session_state.portfolio = {}
+
+    # Input section
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        ticker_input = st.text_input("Stock Ticker (e.g. AAPL)", key="ticker_input")
+    with col2:
+        shares_input = st.number_input("Shares", min_value=1, step=1, key="shares_input")
+
+    # Button to add to portfolio
+    if st.button("➕ Add to Portfolio"):
+        ticker = ticker_input.strip().upper()
+        shares = int(shares_input)
+        if ticker:
+            if ticker in st.session_state.portfolio:
+                st.session_state.portfolio[ticker] += shares
+            else:
+                st.session_state.portfolio[ticker] = shares
+            st.success(f"Added {shares} shares of {ticker} to your portfolio.")
+
+    # Display the current portfolio
+    if st.session_state.portfolio:
+        st.markdown("---")
+        st.markdown("### 📈 Portfolio Summary")
+
+        total_value = 0
+        rows = []
+
+        for ticker, shares in st.session_state.portfolio.items():
+            try:
+                stock = yf.Ticker(ticker)
+                current_price = stock.history(period='1d')['Close'].iloc[-1]
+                value = current_price * shares
+                total_value += value
+                rows.append((ticker, shares, current_price, value))
+            except Exception:
+                rows.append((ticker, shares, "N/A", "N/A"))
+
+        # Display as table
+        # Display as table-style blocks
+        for row in rows:
+            t, s, price, val = row
+            st.write(f"**{t}**")
+            st.caption(f"Shares: {s}")
+            st.caption(f"Price: ${price:,.2f}" if isinstance(price, (float, int)) else f"Price: {price}")
+            st.caption(f"Value: ${val:,.2f}" if isinstance(val, (float, int)) else f"Value: {val}")
+            st.markdown("---")  # Optional: adds a divider line between stocks
+
+
+        st.markdown(f"### 💰 Total Portfolio Value: **${total_value:,.2f}**")
 
 # Main Streamlit app
 ticker = get_ticker()
