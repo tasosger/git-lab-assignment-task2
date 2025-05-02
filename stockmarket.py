@@ -28,6 +28,7 @@ def get_ticker():
     clicked = click_detector(content)
     return clicked
 
+
 def get_date_range():
     col1, col2 = st.columns(2)
     with col1:
@@ -183,7 +184,6 @@ def show_portfolio():
 # Main Streamlit app
 ticker = get_ticker()
 
-# Every time something happens, Streamlit reruns the script so when an image is clicked, the script will rerun and the ticker will not be empty.
 if ticker != "":
     df = get_dataframe(ticker)
     fig = plot_candlestick(df, ticker)
@@ -196,7 +196,6 @@ if ticker != "":
         if df.empty:
             st.error("No data found for the selected date range.")
         else:
-            # it was not good looking alongside 
             fig = plot_candlestick(df, ticker)
             show_plot(fig)
             show_info(ticker)
