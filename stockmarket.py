@@ -1,3 +1,4 @@
+from datetime import date
 import streamlit as st
 import plotly.graph_objects as go
 import yfinance as yf
@@ -17,7 +18,6 @@ def show_tickers():
     content = """
         <a href='#' id='MSFT'><img height='60px' width='60px' src='https://banner2.cleanpng.com/20180609/jq/aa8dbj2or.webp'></a>
         <a href='#' id='AAPL'><img height='60px' width='60px' src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'></a>
-        <a href='#' id='SBUX'><img height='60px' width='60px' src='https://upload.wikimedia.org/wikipedia/el/e/e3/Starbucks_logo.svg'></a>
     """
     return content
 
@@ -27,10 +27,24 @@ def get_ticker():
     clicked = click_detector(content)
     return clicked
 
+
+# Let the user select a start and end date
+def get_date_range():
+    col1, col2 = st.columns(2)
+    with col1:
+        start_date = st.date_input("Start date", value=date(2024, 1, 1), max_value=date.today())
+    with col2:
+        end_date = st.date_input("End date", value=date.today(), max_value=date.today())
+
+    if start_date >= end_date:
+        st.warning("Start date must be before end date.")
+        return None, None
+    return start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+
 # Get the stock dataframe for the given ticker using yfinance
-def get_dataframe(ticker):
+def get_dataframe(ticker, start_date, end_date):
     stock_data = yf.Ticker(ticker)
-    df = stock_data.history(period="1y")
+    df = stock_data.history(start=start_date, end=end_date)
     df.reset_index(inplace=True)  # This moves the date from index to a column
     return df
 
@@ -48,11 +62,16 @@ def plot_candlestick(df, ticker):
 def show_plot(fig):
     st.plotly_chart(fig, use_container_width=True)
 
-# Main Streamlit app
 ticker = get_ticker()
 
-# Every time something happens, Streamlit reruns the script so when an image is clicked, the script will rerun and the ticker will not be empty.
 if ticker != "":
-    df = get_dataframe(ticker)
-    fig = plot_candlestick(df, ticker)
-    show_plot(fig)
+    st.write(f"Selected ticker: **{ticker}**")
+    start_date, end_date = get_date_range()
+
+    if start_date and end_date:
+        df = get_dataframe(ticker, start_date, end_date)
+        if df.empty:
+            st.error("No data found for the selected date range.")
+        else:
+            fig = plot_candlestick(df, ticker)
+            show_plot(fig)
